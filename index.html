@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>농도 테스트</title>
+  <link
+    rel="stylesheet"
+    as="style"
+    crossorigin
+    href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main id="app-container" class="app-container test-mode">
+    <!-- 0. 테스트 문항 화면 (1차 / 2차 공용) -->
+    <section id="test-screen" class="screen active visible" aria-live="polite">
+      <header class="test-header">
+        <div class="test-header-top">
+          <span id="phase-badge" class="phase-badge">1차 테스트</span>
+          <span id="test-progress-text" class="test-progress-text">0 / 0</span>
+        </div>
+        <p id="phase-guide" class="phase-guide">
+          각 이미지를 보고 해당하는 위치의 원을 선택해 주세요.
+        </p>
+        <div class="test-mini-track">
+          <div id="test-mini-fill" class="test-mini-fill"></div>
+        </div>
+      </header>
+
+      <!-- 문항 목록이 동적으로 렌더링되는 영역 -->
+      <div id="question-list" class="question-list"></div>
+
+      <footer class="test-footer">
+        <p id="test-alert" class="test-alert" role="alert"></p>
+        <button type="button" id="submit-phase-btn" class="submit-phase-btn">
+          다음 단계로
+        </button>
+      </footer>
+    </section>
+
+    <!-- 1. 테스트 결과 대기화면 -->
+    <section id="loading-screen" class="screen" aria-live="polite">
+      <div class="loading-box">
+        <p class="loading-label">결과를 분석하고 있어요</p>
+        <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+          <div id="progress-fill" class="progress-fill"></div>
+        </div>
+        <div id="progress-percent" class="progress-percent">0%</div>
+      </div>
+    </section>
+
+    <!-- 2. 결과화면 -->
+    <section id="result-screen" class="screen" aria-live="polite">
+      <div class="result-card">
+        <!-- 2.1. 한 글자씩 중앙정렬로 등장하는 결과 텍스트 -->
+        <h1 id="result-title" class="result-title" aria-label="테스트 결과 타이틀"></h1>
+
+        <!-- 2.2. 결과에 따른 고유 문장 (작은 회색 글자) -->
+        <p id="result-desc" class="result-desc"></p>
+
+        <!-- 2.3. 농도:{퍼센트}% 출력 영역 -->
+        <div id="result-score" class="result-score"></div>
+
+        <!-- 다시 테스트하기 버튼 -->
+        <button type="button" id="retry-btn" class="retry-btn">다시 테스트하기</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="questions.js" defer></script>
+  <script src="app.js" defer></script>
+</body>
+</html>

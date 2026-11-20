@@ -1,0 +1,640 @@
+:root {
+  --bg-color: #f5f7fa;
+  --surface-color: #ffffff;
+  --text-primary: #1c2532;
+  --text-secondary: #64748b;
+  --border-color: #e6e9ef;
+  --track-color: #eaedf3;
+  --sky-blue: #87d3ff;
+  --soft-pink: #ffc0d3;
+
+  /* 7단계 리커트 척도 컬러 (초록 / 중앙 회색 / 보라) */
+  --likert-left: #33a474;
+  --likert-neutral: #9b9faa;
+  --likert-right: #88619a;
+  --likert-muted: #939aa6;
+
+  /* 프로그레스 바 전용 (하늘색 + 옅은 분홍색 25도 대각선) */
+  --brand-gradient: linear-gradient(25deg, var(--sky-blue) 0%, var(--soft-pink) 100%);
+
+  /* 농도 퍼센트 전용 (블루 -> 라벤더 -> 핑크) */
+  --score-gradient: linear-gradient(90deg, #749af6 0%, #a88ae2 50%, #dc77c5 100%);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 겉 사각형 카드 컨테이너 */
+.app-container {
+  width: 100%;
+  max-width: 520px;
+  position: relative;
+  background-color: var(--surface-color);
+  border-radius: 28px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.08);
+  padding: 48px 32px;
+  transition: max-width 0.3s ease;
+}
+
+/* 테스트 화면일 때 7단계 버튼과 이미지를 위해 카드 폭 확장 */
+.app-container.test-mode {
+  max-width: 740px;
+  padding: 36px 32px 44px;
+}
+
+/* 화면 전환 기본 구조 */
+.screen {
+  display: none;
+  width: 100%;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.screen.active {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.screen.visible {
+  opacity: 1;
+}
+
+/* =========================
+   0. 테스트 문항 화면
+   ========================= */
+.test-header {
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  padding: 8px 0 18px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 8px;
+}
+
+.test-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.phase-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  background-color: #eef2ff;
+  color: #4f67d6;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.phase-badge.phase-2 {
+  background-color: #fdf2f8;
+  color: #c24d97;
+}
+
+.test-progress-text {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.phase-guide {
+  font-size: 0.92rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 12px;
+  word-break: keep-all;
+}
+
+.test-mini-track {
+  width: 100%;
+  height: 7px;
+  background-color: var(--track-color);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.test-mini-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--brand-gradient);
+  transition: width 0.25s ease;
+}
+
+.question-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.question-empty {
+  padding: 48px 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* 개별 문항 블록 */
+.question-item {
+  width: 100%;
+  padding: 32px 8px 22px;
+  border-bottom: 1px solid var(--border-color);
+  transition: opacity 0.25s ease;
+}
+
+.question-item:last-child {
+  border-bottom: none;
+}
+
+/* 비활성/응답 완료 문항은 부드럽게 톤 다운 */
+.question-item:not(.is-active) {
+  opacity: 0.58;
+}
+
+.question-item:not(.is-active):hover {
+  opacity: 0.92;
+}
+
+.question-item.is-skipped .likert-row {
+  opacity: 0.35;
+}
+
+/* 문항 이미지 영역 */
+.question-image-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.question-image {
+  display: block;
+  max-width: 100%;
+  max-height: 280px;
+  width: auto;
+  height: auto;
+  border-radius: 14px;
+  object-fit: contain;
+  background-color: #f8fafc;
+  border: 1px solid #eef1f6;
+}
+
+/* 7단계 척도 행 */
+.likert-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  transition: opacity 0.2s ease;
+}
+
+.likert-label {
+  flex: 0 0 82px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--likert-muted);
+  transition: color 0.2s ease;
+  word-break: keep-all;
+}
+
+.likert-label.left {
+  text-align: left;
+}
+
+.likert-label.right {
+  text-align: right;
+}
+
+/* 활성 문항에서만 초록/보라 컬러 강조 */
+.question-item.is-active .likert-label.left {
+  color: var(--likert-left);
+}
+
+.question-item.is-active .likert-label.right {
+  color: var(--likert-right);
+}
+
+.likert-options {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 440px;
+  margin: 0 auto;
+  gap: 8px;
+}
+
+/* 원형 선택 버튼 */
+.likert-circle {
+  --circle-color: var(--likert-muted);
+  position: relative;
+  border-radius: 50%;
+  border: 2.5px solid var(--circle-color);
+  background-color: transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition:
+    transform 0.16s ease,
+    background-color 0.18s ease,
+    border-color 0.18s ease;
+}
+
+/* 대칭 크기 (바깥쪽이 가장 크고 중앙이 가장 작음) */
+.likert-circle.size-3 {
+  width: 52px;
+  height: 52px;
+}
+
+.likert-circle.size-2 {
+  width: 42px;
+  height: 42px;
+}
+
+.likert-circle.size-1 {
+  width: 34px;
+  height: 34px;
+}
+
+.likert-circle.size-0 {
+  width: 26px;
+  height: 26px;
+}
+
+/* 활성 문항 컬러 매핑 */
+.question-item.is-active .likert-circle.side-left {
+  --circle-color: var(--likert-left);
+}
+
+.question-item.is-active .likert-circle.side-center {
+  --circle-color: var(--likert-neutral);
+}
+
+.question-item.is-active .likert-circle.side-right {
+  --circle-color: var(--likert-right);
+}
+
+.likert-circle:hover {
+  transform: scale(1.08);
+  background-color: color-mix(in srgb, var(--circle-color) 16%, transparent);
+}
+
+.likert-circle:active {
+  transform: scale(0.95);
+}
+
+.likert-circle.selected {
+  background-color: var(--circle-color);
+  border-color: var(--circle-color);
+}
+
+.likert-circle .check-icon {
+  width: 54%;
+  height: 54%;
+  stroke: #ffffff;
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: opacity 0.16s ease, transform 0.18s ease;
+}
+
+.likert-circle.selected .check-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* 문항 오른쪽 아래 건너뛰기 버튼 */
+.question-actions {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+.skip-btn {
+  padding: 6px 13px;
+  border-radius: 9999px;
+  border: 1px solid #d8dde6;
+  background-color: #ffffff;
+  color: #64748b;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+
+.skip-btn:hover {
+  border-color: #94a3b8;
+  color: var(--text-primary);
+  background-color: #f8fafc;
+}
+
+.skip-btn.active {
+  background-color: #475569;
+  border-color: #475569;
+  color: #ffffff;
+}
+
+/* 테스트 하단 제출 영역 */
+.test-footer {
+  width: 100%;
+  margin-top: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.test-alert {
+  min-height: 1.2rem;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: #e11d48;
+  text-align: center;
+}
+
+.submit-phase-btn {
+  padding: 15px 40px;
+  border: none;
+  border-radius: 9999px;
+  background-color: var(--text-primary);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(28, 37, 50, 0.2);
+  transition: transform 0.16s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+
+.submit-phase-btn:hover {
+  background-color: #111827;
+  transform: translateY(-2px);
+}
+
+.submit-phase-btn:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* =========================
+   1. 결과 대기화면
+   ========================= */
+.loading-box {
+  width: 100%;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px 8px;
+}
+
+.loading-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  letter-spacing: -0.02em;
+}
+
+/* 중앙에서 양쪽으로 커지는 캡슐형 프로그레스 바 */
+.progress-track {
+  width: 100%;
+  max-width: 300px;
+  height: 14px;
+  background-color: var(--track-color);
+  border-radius: 9999px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.progress-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: 9999px;
+  background: var(--brand-gradient);
+  will-change: width;
+}
+
+.progress-percent {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+/* =========================
+   2. 결과화면
+   ========================= */
+.result-card {
+  width: 100%;
+  min-height: 260px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 8px;
+}
+
+/* 2.1. 상단 굵고 큰 텍스트 (한 글자씩 중앙정렬 등장) */
+.result-title {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 2px 1px;
+  font-size: clamp(2.1rem, 8vw, 3.1rem);
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+  word-break: keep-all;
+  min-height: 3.8rem;
+}
+
+.result-title.dense {
+  font-size: clamp(1.75rem, 6.5vw, 2.5rem);
+}
+
+.result-title .char {
+  display: inline-block;
+  opacity: 0;
+  animation: charPopIn 0.36s cubic-bezier(0.22, 1.4, 0.36, 1) forwards;
+}
+
+@keyframes charPopIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.65);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 2.2. 고유 문장 (작은 회색 글자) */
+.result-desc {
+  margin-top: 22px;
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  word-break: keep-all;
+  max-width: 360px;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.result-desc.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 2.3. 농도:{퍼센트}% 큰 텍스트 */
+.result-score {
+  display: inline-block;
+  margin-top: 32px;
+  font-size: clamp(2.2rem, 8.5vw, 3.2rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  background: var(--score-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0;
+  transform: scale(0.78) translateY(10px);
+  transition: opacity 0.55s ease, transform 0.65s cubic-bezier(0.18, 1.35, 0.32, 1);
+}
+
+.result-score.show {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* 다시 테스트하기 버튼 (둥근 검은색 캡슐형) */
+.retry-btn {
+  margin-top: 32px;
+  padding: 15px 34px;
+  border: none;
+  border-radius: 9999px;
+  background-color: var(--text-primary);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 0.98rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(28, 37, 50, 0.22);
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.retry-btn.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.retry-btn.show:hover {
+  background-color: #111827;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 26px rgba(28, 37, 50, 0.28);
+}
+
+.retry-btn.show:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* 모바일 반응형 조정 */
+@media (max-width: 600px) {
+  .app-container.test-mode {
+    padding: 24px 18px 32px;
+  }
+
+  .likert-row {
+    flex-wrap: wrap;
+    row-gap: 10px;
+  }
+
+  .likert-options {
+    order: 1;
+    flex: 1 0 100%;
+    max-width: 100%;
+    gap: 4px;
+  }
+
+  .likert-label {
+    order: 2;
+    flex: 1 0 40%;
+    font-size: 0.84rem;
+  }
+
+  .likert-circle.size-3 {
+    width: 42px;
+    height: 42px;
+  }
+
+  .likert-circle.size-2 {
+    width: 35px;
+    height: 35px;
+  }
+
+  .likert-circle.size-1 {
+    width: 28px;
+    height: 28px;
+  }
+
+  .likert-circle.size-0 {
+    width: 22px;
+    height: 22px;
+  }
+}
